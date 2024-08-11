@@ -798,4 +798,4 @@ with gr.Blocks(theme=theme) as demo:
     # btn2.click(None,None,None,_js=js_payment)
     # demo.load(None,None,None,_js=scripts)
 
-demo.launch(debug=True)
+demo.launch(debug=True, server_port=7680, server_name="0.0.0.0")
