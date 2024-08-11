@@ -6,6 +6,13 @@ import os
 from PIL import Image
 import gradio as gr
 import uuid
+import sys
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s ' '- %(message)s',
+    stream=sys.stdout,
+)
 # import tqdm
 # import time
 theme = gr.themes.Soft().set(
@@ -406,10 +413,35 @@ function game() {
 #     return response
 
 
+def resize_to_square_by_cropping(image, max_size=500):
+    # Get the dimensions of the image
+    image_width, image_height = image.size
+
+    # Determine the size of the square based on the minimum dimension
+    square_size = min(image_width, image_height)
+
+    # Calculate the coordinates for central cropping
+    left = (image_width - square_size) / 2
+    top = (image_height - square_size) / 2
+    right = (image_width + square_size) / 2
+    bottom = (image_height + square_size) / 2
+
+    # Crop the image to a square
+    cropped_image = image.crop((left, top, right, bottom))
+
+    # If the square is larger than the maximum allowed size, resize it
+    if square_size > max_size:
+        cropped_image = cropped_image.resize((max_size, max_size), Image.Resampling.LANCZOS)
+
+    return cropped_image
+
+
 def perform_operations(image, email_id):
     # Get the contents of the 'avipal' folder
     # print(target_folder)
     # if(target_folder==""  or target_folder==None):
+    logging.info(f"Email address is: {email_id}")
+    # print(f"Email address is: {email_id}")
     uuid_code = str(uuid.uuid4())
 
     split_rows = 3
@@ -418,8 +450,9 @@ def perform_operations(image, email_id):
 
     #Split the input image into sub-images and update the '1.png' to '9.png' in the 'avipal3/css' folder
     sub_image_list = []
-    input_image = Image.fromarray(image)
+    input_image = resize_to_square_by_cropping(image)
     image_width, image_height = input_image.size
+    # print(image_width, image_height)
     sub_image_width = image_width // split_cols
     sub_image_height = image_height // split_rows
 
@@ -442,16 +475,17 @@ def perform_operations(image, email_id):
 
     payload = {
         "id": uuid_code,
-        "image_1": sub_image_list[0],
-        "image_2": sub_image_list[1],
-        "image_3": sub_image_list[2],
-        "image_4": sub_image_list[3],
-        "image_5": sub_image_list[4],
-        "image_6": sub_image_list[5],
-        "image_7": sub_image_list[6],
-        "image_8": sub_image_list[7]
+        "image_1": "data:image/png;base64,"+sub_image_list[0],
+        "image_2": "data:image/png;base64,"+sub_image_list[1],
+        "image_3": "data:image/png;base64,"+sub_image_list[2],
+        "image_4": "data:image/png;base64,"+sub_image_list[3],
+        "image_5": "data:image/png;base64,"+sub_image_list[4],
+        "image_6": "data:image/png;base64,"+sub_image_list[5],
+        "image_7": "data:image/png;base64,"+sub_image_list[6],
+        "image_8": "data:image/png;base64,"+sub_image_list[7]
     }
     response = requests.post(url, json=payload)
+    logging.info(response.json())
     dbStored = False
     if response.status_code == 200:
         result = response.json()
@@ -468,17 +502,19 @@ with gr.Blocks(theme=theme) as demo:
     # start_btn = gr.Button(value="Preview?")
     # start_html = gr.HTML(start)
     # demo.load(None,None,None,_js=scripts)
-    image = gr.Image(label="Upload a square shaped image"
-        ,shape=(600,600)
-        # ,height=500,width=500
-        ,tool='select')
+    with gr.Row():
+        image = gr.Image(label="Upload a square shaped image",
+            height = 300,
+            type = 'pil',
+            interactive = True                                            
+        )
     email = gr.Textbox(label="Email address")
     btn = gr.Button(value="Submit")
     test_html = gr.HTML()
     start_html = gr.HTML(init_html)
-    demo.load(None,None,None,_js=scripts)
+    demo.load(None,None,None,js=scripts)
     out = gr.HTML(init_html, visible=False)
-    demo.load(None,None,None,_js=scripts)
+    demo.load(None,None,None,js=scripts)
     # btn2 = gr.Button(value="Pay to Get URL",visible=False)
     pay_html = gr.HTML()
 
@@ -488,6 +524,8 @@ with gr.Blocks(theme=theme) as demo:
         # for img in progress.tqdm(imgs, desc="Generating Puzzle"):
         #     time.sleep(0.1)
         receipt_link_url, sub_image_list, dbStored = perform_operations(image,email_id)
+        logging.info(f"Cutom Puzzle Url is: {receipt_link_url}")
+        # print(f"Cutom Puzzle Url is: {receipt_link_url}")
         redirect_url = "https://piczify.com/thank-you/"
 
         # print(sub_image_list)
@@ -559,6 +597,8 @@ with gr.Blocks(theme=theme) as demo:
             # Get the URL value from the response
             url_value = api_response["data"]["attributes"]["url"]
 
+            logging.info(f"Checkout Url is: {url_value}")
+            # print(f"Checkout Url is: {url_value}")
 
             payment_html = f"""<!DOCTYPE html>
 <html>
@@ -742,7 +782,6 @@ with gr.Blocks(theme=theme) as demo:
 
 </body>
 </html>"""
-        print("ok")
 
         return {
             # btn2: gr.update(visible=True),
@@ -759,4 +798,4 @@ with gr.Blocks(theme=theme) as demo:
     # btn2.click(None,None,None,_js=js_payment)
     # demo.load(None,None,None,_js=scripts)
 
-demo.launch(server_port=7860, server_name="0.0.0.0")
+demo.launch(debug=True)
