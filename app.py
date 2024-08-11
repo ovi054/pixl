@@ -759,4 +759,4 @@ with gr.Blocks(theme=theme) as demo:
     # btn2.click(None,None,None,_js=js_payment)
     # demo.load(None,None,None,_js=scripts)
 
-demo.launch()
+demo.launch(server_port=7860, server_name="0.0.0.0")
