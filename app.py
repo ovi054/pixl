@@ -523,6 +523,16 @@ with gr.Blocks(theme=theme) as demo:
         # imgs = [None] * 100
         # for img in progress.tqdm(imgs, desc="Generating Puzzle"):
         #     time.sleep(0.1)
+        yield {
+            # btn2: gr.update(visible=True),
+            out: init_html,
+            test_html:  """
+    <div style="display: flex; justify-content: center; align-items: center; font-weight: bold; color: #333;">
+      Generating Puzzle...
+    </div>
+    """,
+            pay_html: pay_html
+        }
         receipt_link_url, sub_image_list, dbStored = perform_operations(image,email_id)
         logging.info(f"Cutom Puzzle Url is: {receipt_link_url}")
         # print(f"Cutom Puzzle Url is: {receipt_link_url}")
@@ -783,7 +793,7 @@ with gr.Blocks(theme=theme) as demo:
 </body>
 </html>"""
 
-        return {
+        yield {
             # btn2: gr.update(visible=True),
             out: override_html,
             test_html: "<html></html>",
