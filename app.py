@@ -576,7 +576,7 @@ with gr.Blocks(theme=theme) as demo:
                     "variant": {
                         "data": {
                             "type": "variants",
-                            "id": "840674"
+                            "id": "840718"
                         }
                     }
                 }
