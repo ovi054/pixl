@@ -548,7 +548,7 @@ with gr.Blocks(theme=theme) as demo:
             'Authorization': f'Bearer {api_key}'
         }
 
-        # Create the request body
+        # Create the request body 33985 108876
         request_body = {
             "data": {
                 "type": "checkouts",
@@ -570,13 +570,13 @@ with gr.Blocks(theme=theme) as demo:
                     "store": {
                         "data": {
                             "type": "stores",
-                            "id": "33985"
+                            "id": "168450"
                         }
                     },
                     "variant": {
                         "data": {
                             "type": "variants",
-                            "id": "108876"
+                            "id": "840674"
                         }
                     }
                 }
